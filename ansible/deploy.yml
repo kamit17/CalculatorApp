@@ -1,0 +1,21 @@
+---
+- name: Deploy Calculator App
+  hosts: app_servers
+  tasks:
+    - name: Ensure Java is installed
+      apt:
+        name: default-jre
+        state: present
+      become: true
+
+    - name: Copy JAR file to the server
+      copy:
+        src: ../dist/CalculatorApp.jar
+        dest: /opt/CalculatorApp.jar
+        mode: '0755'
+
+    - name: Run Calculator Application
+      shell: java -jar /opt/CalculatorApp.jar
+      async: 10
+      poll: 0
+

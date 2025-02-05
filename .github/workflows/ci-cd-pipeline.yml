@@ -1,0 +1,55 @@
+name: CI/CD Pipeline for Calculator App
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v2
+
+    - name: Install Java and Ant
+      run: |
+        sudo apt update
+        sudo apt install -y default-jdk ant
+
+    - name: Build the Calculator App
+      run: |
+        ant clean
+        ant jar
+
+    - name: Archive Build Artifacts
+      uses: actions/upload-artifact@v2
+      with:
+        name: calculator-jar
+        path: dist/CalculatorApp.jar
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build
+
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v2
+
+    - name: Install Ansible
+      run: |
+        sudo apt update
+        sudo apt install -y ansible
+
+    - name: Download Build Artifact
+      uses: actions/download-artifact@v2
+      with:
+        name: calculator-jar
+        path: dist/
+
+    - name: Deploy Application Using Ansible
+      run: |
+        ansible-playbook -i ansible/hosts ansible/deploy.yml
+
